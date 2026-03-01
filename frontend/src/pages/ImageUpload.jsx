@@ -13,7 +13,12 @@ export default function ImageUpload() {
     const [dragging, setDragging] = useState(false);
     const fileRef = useRef();
 
-    const CROPS = ['Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize', 'Other'];
+    const CROPS = [
+        'Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize',
+        'Sugarcane', 'Jute', 'Tea', 'Coffee', 'Rubber', 'Mango', 'Banana', 'Apple',
+        'Grapes', 'Orange', 'Mustard', 'Groundnut', 'Sunflower', 'Chili', 'Turmeric',
+        'Garlic', 'Ginger', 'Other'
+    ];
 
     const handleFile = (file) => {
         if (!file || !file.type.startsWith('image/')) {

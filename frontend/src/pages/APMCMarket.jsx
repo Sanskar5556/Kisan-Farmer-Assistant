@@ -3,7 +3,12 @@ import api from '../api/axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const STATES = ['Maharashtra', 'Punjab', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'Karnataka', 'Madhya Pradesh'];
-const CROPS = ['Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize'];
+const CROPS = [
+    'Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize',
+    'Sugarcane', 'Jute', 'Tea', 'Coffee', 'Rubber', 'Mango', 'Banana', 'Apple',
+    'Grapes', 'Orange', 'Mustard', 'Groundnut', 'Sunflower', 'Chili', 'Turmeric',
+    'Garlic', 'Ginger'
+];
 
 export default function APMCMarket() {
     const [tab, setTab] = useState('district');

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'kisan/smart-assistant-backend',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '9e1dc4311cc409b8681650a8910dc0861c3e9205',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -365,9 +365,9 @@
             ),
         ),
         'kisan/smart-assistant-backend' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '9e1dc4311cc409b8681650a8910dc0861c3e9205',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

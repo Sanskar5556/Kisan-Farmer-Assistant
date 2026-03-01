@@ -10,7 +10,7 @@ import axios from 'axios';
  * 3. Redirects to login if token expires (401)
  */
 const api = axios.create({
-    baseURL: '/api',   // Proxied to http://localhost:8000/api via vite.config.js
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api',   // Falls back to /api for local dev proxy
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

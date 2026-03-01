@@ -39,7 +39,7 @@ app = FastAPI(
 # Allow Laravel backend to call this API (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_origins=["*"], # In production, restrict this to your actual Render/Railway URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

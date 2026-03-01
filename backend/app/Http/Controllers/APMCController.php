@@ -26,7 +26,7 @@ class APMCController extends Controller
     public function byDistrict(Request $request)
     {
         $request->validate([
-            'crop'     => 'required|string',
+            'crop' => 'required|string',
             'district' => 'required|string',
         ]);
 
@@ -44,11 +44,11 @@ class APMCController extends Controller
         }
 
         return response()->json([
-            'success'  => true,
-            'crop'     => $request->crop,
+            'success' => true,
+            'crop' => $request->crop,
             'district' => $request->district,
-            'prices'   => $prices,
-            'latest'   => $prices->first(), // Most recent record
+            'prices' => $prices,
+            'latest' => $prices->first(), // Most recent record
         ]);
     }
 
@@ -59,7 +59,7 @@ class APMCController extends Controller
     public function stateAverage(Request $request)
     {
         $request->validate([
-            'crop'  => 'required|string',
+            'crop' => 'required|string',
             'state' => 'required|string',
         ]);
 
@@ -67,12 +67,12 @@ class APMCController extends Controller
         $data = APMCPrice::byCrop($request->crop)
             ->byState($request->state)
             ->select(
-                'district',
-                DB::raw('AVG(modal_price) as avg_price'),
-                DB::raw('MIN(min_price) as lowest_price'),
-                DB::raw('MAX(max_price) as highest_price'),
-                DB::raw('MAX(price_date) as last_updated')
-            )
+            'district',
+            DB::raw('AVG(modal_price) as avg_price'),
+            DB::raw('MIN(min_price) as lowest_price'),
+            DB::raw('MAX(max_price) as highest_price'),
+            DB::raw('MAX(price_date) as last_updated')
+        )
             ->groupBy('district')
             ->orderBy('avg_price', 'desc')
             ->get();
@@ -80,11 +80,11 @@ class APMCController extends Controller
         $stateAvg = $data->avg('avg_price');
 
         return response()->json([
-            'success'          => true,
-            'crop'             => $request->crop,
-            'state'            => $request->state,
-            'state_average'    => round($stateAvg, 2),
-            'by_district'      => $data,
+            'success' => true,
+            'crop' => $request->crop,
+            'state' => $request->state,
+            'state_average' => round($stateAvg, 2),
+            'by_district' => $data,
         ]);
     }
 
@@ -98,11 +98,11 @@ class APMCController extends Controller
 
         $data = APMCPrice::byCrop($request->crop)
             ->select(
-                'state',
-                DB::raw('AVG(modal_price) as avg_price'),
-                DB::raw('COUNT(*) as market_count'),
-                DB::raw('MAX(price_date) as last_updated')
-            )
+            'state',
+            DB::raw('AVG(modal_price) as avg_price'),
+            DB::raw('COUNT(*) as market_count'),
+            DB::raw('MAX(price_date) as last_updated')
+        )
             ->groupBy('state')
             ->orderBy('avg_price', 'desc')
             ->get();
@@ -110,10 +110,10 @@ class APMCController extends Controller
         $nationalAvg = APMCPrice::byCrop($request->crop)->avg('modal_price');
 
         return response()->json([
-            'success'          => true,
-            'crop'             => $request->crop,
+            'success' => true,
+            'crop' => $request->crop,
             'national_average' => round($nationalAvg, 2),
-            'by_state'         => $data,
+            'by_state' => $data,
         ]);
     }
 
@@ -124,9 +124,9 @@ class APMCController extends Controller
     public function yearTrend(Request $request)
     {
         $request->validate([
-            'crop'  => 'required|string',
+            'crop' => 'required|string',
             'state' => 'nullable|string',
-            'year'  => 'nullable|integer|min:2000|max:2099',
+            'year' => 'nullable|integer|min:2000',
         ]);
 
         $year = $request->year ?? Carbon::now()->year;
@@ -139,29 +139,31 @@ class APMCController extends Controller
 
         $trend = $query
             ->select(
-                DB::raw('YEAR(price_date) as year'),
-                DB::raw('MONTH(price_date) as month'),
-                DB::raw('MONTHNAME(price_date) as month_name'),
-                DB::raw('AVG(modal_price) as avg_price'),
-                DB::raw('MIN(min_price) as min_price'),
-                DB::raw('MAX(max_price) as max_price')
-            )
-            ->groupBy(DB::raw('YEAR(price_date)'), DB::raw('MONTH(price_date)'), DB::raw('MONTHNAME(price_date)'))
-            ->orderBy(DB::raw('MONTH(price_date)'))
+            DB::raw('cast(strftime("%Y", price_date) as integer) as year'),
+            DB::raw('cast(strftime("%m", price_date) as integer) as month'),
+            // SQLite doesn't have a native MONTHNAME function, so we map it out later
+            DB::raw('AVG(modal_price) as avg_price'),
+            DB::raw('MIN(min_price) as min_price'),
+            DB::raw('MAX(max_price) as max_price')
+        )
+            ->groupBy(DB::raw('strftime("%Y", price_date)'), DB::raw('strftime("%m", price_date)'))
+            ->orderBy(DB::raw('strftime("%m", price_date)'))
             ->get()
             ->map(function ($item) {
-                $item->avg_price = round($item->avg_price, 2);
-                $item->min_price = round($item->min_price, 2);
-                $item->max_price = round($item->max_price, 2);
-                return $item;
-            });
+            $item->avg_price = round($item->avg_price, 2);
+            $item->min_price = round($item->min_price, 2);
+            $item->max_price = round($item->max_price, 2);
+            // Calculate Month Name
+            $item->month_name = Carbon::create()->month($item->month)->format('F');
+            return $item;
+        });
 
         return response()->json([
             'success' => true,
-            'crop'    => $request->crop,
-            'state'   => $request->state ?? 'All India',
-            'year'    => $year,
-            'trend'   => $trend,
+            'crop' => $request->crop,
+            'state' => $request->state ?? 'All India',
+            'year' => $year,
+            'trend' => $trend,
         ]);
     }
 
@@ -171,11 +173,16 @@ class APMCController extends Controller
      */
     public function seedDemoData()
     {
-        $crops = ['Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize'];
+        $crops = [
+            'Wheat', 'Rice', 'Tomato', 'Onion', 'Potato', 'Cotton', 'Soybean', 'Maize',
+            'Sugarcane', 'Jute', 'Tea', 'Coffee', 'Rubber', 'Mango', 'Banana', 'Apple',
+            'Grapes', 'Orange', 'Mustard', 'Groundnut', 'Sunflower', 'Chili', 'Turmeric',
+            'Garlic', 'Ginger'
+        ];
         $states = [
             'Maharashtra' => ['Pune', 'Nashik', 'Aurangabad', 'Nagpur'],
-            'Punjab'      => ['Amritsar', 'Ludhiana', 'Jalandhar', 'Patiala'],
-            'Rajasthan'   => ['Jaipur', 'Jodhpur', 'Bikaner', 'Ajmer'],
+            'Punjab' => ['Amritsar', 'Ludhiana', 'Jalandhar', 'Patiala'],
+            'Rajasthan' => ['Jaipur', 'Jodhpur', 'Bikaner', 'Ajmer'],
             'Uttar Pradesh' => ['Lucknow', 'Kanpur', 'Agra', 'Varanasi'],
         ];
 
@@ -187,14 +194,14 @@ class APMCController extends Controller
                     for ($day = 90; $day >= 0; $day--) {
                         $basePrice = rand(800, 5000);
                         APMCPrice::create([
-                            'crop_name'    => $crop,
-                            'state'        => $state,
-                            'district'     => $district,
-                            'market_name'  => "{$district} APMC",
-                            'min_price'    => $basePrice - rand(50, 200),
-                            'max_price'    => $basePrice + rand(50, 300),
-                            'modal_price'  => $basePrice,
-                            'price_date'   => Carbon::now()->subDays($day)->toDateString(),
+                            'crop_name' => $crop,
+                            'state' => $state,
+                            'district' => $district,
+                            'market_name' => "{$district} APMC",
+                            'min_price' => $basePrice - rand(50, 200),
+                            'max_price' => $basePrice + rand(50, 300),
+                            'modal_price' => $basePrice,
+                            'price_date' => Carbon::now()->subDays($day)->toDateString(),
                         ]);
                         $inserted++;
                     }
